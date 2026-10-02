@@ -7,103 +7,98 @@ const SECONDARY = "#C4B39A";
 
 const SCENES = [
   {
-    lines: ["Some stories begin with a coincidence."],
-    pause: 700,
-  },
-  {
-    lines: ["Ours began with a game."],
-    pause: 700,
-  },
-  {
-    lines: ["Two strangers.", "Who happened to play together."],
-    pause: 850,
+    lines: [
+      "Funny how some love stories start without you even knowing.",
+      "Ours started with a simple game.",
+    ],
+    pause: 2200,
   },
   {
     lines: [
-      "We started as nothing more than teammates,",
-      "then became friends...",
-      "and somewhere along the way,",
-      "you became someone special.",
+      "Somehow, we became a duo.",
+      "Tapos, ayun...",
+      "parang naging normal na na ikaw yung kasama ko.",
+      "Hanggang sa nasanay na akong hinihintay kang mag-online.",
     ],
-    pause: 1600,
+    pause: 2800,
   },
   {
     lines: [
-      "From a simple game,",
-      "to countless conversations,",
-      "to something neither of us expected.",
+      "Hanggang sa hindi na lang tayo naglalaro.",
+      "Nag-uusap na rin tayo.",
+      "About games, about life... about everything.",
+      "And hindi nagtagal, naging magkaibigan tayo.",
     ],
-    pause: 2500,
+    pause: 2800,
+  },
+  {
+    lines: [
+      "Then one ordinary night...",
+      "habang busy ako sa work,",
+      "you suddenly sent me a kiss.",
+    ],
+    pause: 2200,
+  },
+  {
+    lines: [
+      "Simple lang naman 'yun.",
+      "Isang kiss lang.",
+      "Pero I don't know...",
+      "it felt different.",
+    ],
+    pause: 2400,
+  },
+  {
+    lines: [
+      "It started there...",
+      "we started talking a little more.",
+      "Looking for each other a little more.",
+      "And somewhere between all those little moments,",
+      "something started to grow.",
+    ],
+    pause: 3200,
   },
 ];
 
 const FINAL_SCENE = {
   lines: ["And this...", "is where our story begins."],
-  pause: 1800,
+  pause: 2200,
 };
 
 export default function FiveClickIntro({ onComplete, onFinalScene }) {
   const [sceneIndex, setSceneIndex] = useState(0);
-  const [showTapPrompt, setShowTapPrompt] = useState(false);
-  const [canContinue, setCanContinue] = useState(false);
-  const promptTimer = useRef();
-  const finalTimer = useRef();
+  const advanceTimer = useRef();
   const isFinal = sceneIndex === SCENES.length;
   const scene = isFinal ? FINAL_SCENE : SCENES[sceneIndex];
 
   useEffect(() => {
     return () => {
-      clearTimeout(promptTimer.current);
-      clearTimeout(finalTimer.current);
+      clearTimeout(advanceTimer.current);
     };
   }, []);
 
   const handleTypingComplete = () => {
-    clearTimeout(promptTimer.current);
-    clearTimeout(finalTimer.current);
-    setCanContinue(true);
-
-    if (isFinal) {
-      finalTimer.current = setTimeout(onComplete, scene.pause);
-      return;
-    }
-
-    promptTimer.current = setTimeout(() => {
-      setShowTapPrompt(true);
-    }, 600);
-  };
-
-  const continueScene = () => {
-    if (isFinal || !canContinue) return;
-    clearTimeout(promptTimer.current);
-    setShowTapPrompt(false);
-    setCanContinue(false);
-    setSceneIndex((current) => current + 1);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      if (canContinue) {
-        continueScene();
+    clearTimeout(advanceTimer.current);
+    advanceTimer.current = setTimeout(() => {
+      if (isFinal) {
+        onComplete?.();
+      } else {
+        setSceneIndex((current) => current + 1);
       }
-    }
+    }, scene.pause);
   };
 
   return (
     <main
-      role="button"
-      tabIndex={isFinal || !canContinue ? -1 : 0}
-      aria-label={isFinal ? "Final story message" : "Tap to continue the story"}
-      aria-disabled={isFinal || !canContinue}
-      onClick={continueScene}
-      onKeyDown={handleKeyDown}
-      className="fixed inset-0 flex items-center justify-center overflow-hidden px-8 text-center"
+      role="region"
+      aria-label="Story intro"
+      aria-live="polite"
+      className="fixed inset-0 flex items-center justify-center overflow-hidden px-8 text-center select-none"
       style={{
         minHeight: "100dvh",
         backgroundColor: "#000000",
         color: CREAM,
-        cursor: isFinal ? "default" : canContinue ? "pointer" : "default",
+        cursor: "default",
       }}
     >
       <div className="w-full max-w-2xl">
@@ -114,14 +109,14 @@ export default function FiveClickIntro({ onComplete, onFinalScene }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
+            transition={{ duration: 0.9, ease: "easeInOut" }}
           >
             <TypewriterText
               key={sceneIndex}
               lines={scene.lines}
-              speed={isFinal ? 72 : sceneIndex === 3 ? 78 : 58}
-              linePause={sceneIndex === 3 ? 950 : 700}
-              startDelay={450}
+              speed={isFinal ? 55 : 48}
+              linePause={700}
+              startDelay={350}
               onLineStart={(lineIndex) => {
                 if (isFinal && lineIndex === 1) {
                   onFinalScene?.();
@@ -139,20 +134,6 @@ export default function FiveClickIntro({ onComplete, onFinalScene }) {
               }))}
               className="w-full"
             />
-            <AnimatePresence>
-              {showTapPrompt && !isFinal && (
-                <motion.span
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: [0.35, 0.8, 0.35], y: [5, 0, 5] }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                  className="mt-14 text-xs uppercase tracking-[0.18em]"
-                  style={{ color: SECONDARY, fontFamily: "Inter, system-ui, sans-serif" }}
-                >
-                  tap to continue
-                </motion.span>
-              )}
-            </AnimatePresence>
           </motion.div>
         </AnimatePresence>
       </div>
